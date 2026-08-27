@@ -19,6 +19,5 @@ __all__ = [
     "get_config",
     "generate_config_snippet",
     "decoder",
-    "get_token",
     "UserDataSaver",
 ]

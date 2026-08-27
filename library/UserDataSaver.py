@@ -1,5 +1,6 @@
 import csv
 import inspect
+import json
 from pathlib import Path
 
 
@@ -34,3 +35,16 @@ class UserDataSaver:
 
             writer.writeheader()
             writer.writerow(data)
+
+    def save_user_json(self, username, data, filename):
+        """
+        Save a JSON-serializable object (dict, list, etc.) to a .json file
+        under output_dir / username / {filename}.json
+        """
+        user_dir = self.output_dir / username
+        user_dir.mkdir(parents=True, exist_ok=True)
+
+        filepath = user_dir / f"{filename}.json"
+
+        with filepath.open("w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
