@@ -20,4 +20,5 @@ __all__ = [
     "generate_config_snippet",
     "decoder",
     "UserDataSaver",
+    "parse_phone"
 ]

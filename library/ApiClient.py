@@ -100,7 +100,7 @@ class ApiClient:
         cfg = self.config
         payload.update(
         {
-            "areaCode": f"+{ cfg.area_code}",
+            "areaCode": f"+{cfg.area_code}",
             "deviceId": cfg.DEVICE_ID,
             "cId":cfg.DEVICE_ID,
                         
@@ -114,7 +114,19 @@ class ApiClient:
             print(resp.json()['info'])
             raise AssertionError(f"{username}: {resp.json()['info']}")
         return resp.json()['row']
-
+    def get_single_json_debug(
+        self,
+        URL: str,
+        token: str,
+        data: Any = None,
+    ) -> requests.Response:
+        method = "POST" if data is not None else "GET"
+        return self.post(
+            URL,
+            data=data,
+            # params=params,
+            extra_headers={"authorization": f"Bearer {token}"},
+        )
     def get_single_json(
         self,
         URL: str,
