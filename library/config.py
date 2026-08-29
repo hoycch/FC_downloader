@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 _AREA_CODE_BASE_URLS = {
     "852": "https://dhzx6onj3zqr3.cloudfront.net",
     "853": "https://dhzx6onj3zqr3.cloudfront.net",
+    "86": "https://dhzx6onj3zqr3.cloudfront.net",
     "65": "https://d1vqujo8itcqpm.cloudfront.net",
     "82": "https://d29m8ihcfwtow5.cloudfront.net",
     "84": "https://d1icj6ewkl9j2u.cloudfront.net",

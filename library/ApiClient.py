@@ -68,18 +68,36 @@ class ApiClient:
         self._maybe_delay()
 
         headers = self._make_headers(extra_headers)  # ← from builder.py
+        effective_timeout = timeout if timeout is not None else self.config.REQUEST_TIMEOUT
 
-        return self.session.request(
-            method=method.upper(),
-            url=url,
-            headers=headers,
-            data=data,
-            json=json,
-            params=params,
-            timeout=timeout if timeout is not None else self.config.REQUEST_TIMEOUT,
-            verify=self.config.VERIFY_SSL,
-            **kwargs,
-        )
+        # First attempt
+        try:
+            return self.session.request(
+                method=method.upper(),
+                url=url,
+                headers=headers,
+                data=data,
+                json=json,
+                params=params,
+                timeout=effective_timeout,
+                verify=self.config.VERIFY_SSL,
+                **kwargs,
+            )
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            # One retry on timeout / connection error
+            print(f"Request timed out / connection error ({type(e).__name__}), retrying once...")
+            time.sleep(1)  # small pause before retry
+            return self.session.request(
+                method=method.upper(),
+                url=url,
+                headers=headers,
+                data=data,
+                json=json,
+                params=params,
+                timeout=effective_timeout,
+                verify=self.config.VERIFY_SSL,
+                **kwargs,
+            )
 
     def get(self, url: str, **kwargs: Any) -> requests.Response:
         return self.request("GET", url, **kwargs)
@@ -96,24 +114,47 @@ class ApiClient:
             "username": username,
             "password": password,
         }
-        
+
         cfg = self.config
         payload.update(
-        {
-            "areaCode": f"+{cfg.area_code}",
-            "deviceId": cfg.DEVICE_ID,
-            "cId":cfg.DEVICE_ID,
-                        
-        })
+            {
+                "areaCode": f"+{cfg.area_code}",
+                "deviceId": cfg.DEVICE_ID,
+                "cId": cfg.DEVICE_ID,
+            }
+        )
+
+        # First attempt
         resp = self.post(
             cfg.LOGIN_URL,
             data=payload,
         )
-        
-        if resp.json()['info'] != "成功":
-            print(resp.json()['info'])
-            raise AssertionError(f"{username}: {resp.json()['info']}")
-        return resp.json()['row']
+
+        # Retry once on any server error (5xx)
+        if 500 <= resp.status_code < 600:
+            print(f"Server error {resp.status_code} for {username}, retrying once...")
+            resp = self.post(
+                cfg.LOGIN_URL,
+                data=payload,
+            )
+
+            # Still a server error after retry → give up and continue
+            if 500 <= resp.status_code < 600:
+                print(f"Server error {resp.status_code} again for {username}, skipping.")
+                return None
+
+        # Normal business-logic check (only reached on non-5xx responses)
+        try:
+            data = resp.json()
+        except ValueError:
+            print(f"Invalid JSON response for {username} (status {resp.status_code}), skipping.")
+            return None
+
+        if data.get("info") != "成功":
+            print(data.get("info"))
+            raise AssertionError(f"{username}: {data.get('info')}")
+        return data.get("row")
+
     def get_single_json_debug(
         self,
         URL: str,
@@ -127,6 +168,7 @@ class ApiClient:
             # params=params,
             extra_headers={"authorization": f"Bearer {token}"},
         )
+
     def get_single_json(
         self,
         URL: str,
@@ -157,7 +199,6 @@ class ApiClient:
         # no body
         return self.get(URL, extra_headers=extra)
 
-    
     def close(self) -> None:
         self.session.close()
 

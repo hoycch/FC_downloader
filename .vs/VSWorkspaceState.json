@@ -1,10 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\bosses",
     "\\brutal_target",
     "\\library"
   ],
-  "SelectedNode": "\\library\\ApiClient.py",
+  "SelectedNode": "\\profile_downloader.py",
   "PreviewInSolutionExplorer": false
 }

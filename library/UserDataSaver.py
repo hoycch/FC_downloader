@@ -19,10 +19,9 @@ class UserDataSaver:
         )
 
     def save_user_csv(self, username, data, filename):
-        user_dir = self.output_dir / username
-        user_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)   # ← add this line  
 
-        filepath = user_dir / f"{filename}.csv"
+        filepath = self.output_dir / f"{username}-{filename}.csv"
 
         with filepath.open(
             "w",
@@ -42,10 +41,9 @@ class UserDataSaver:
         Save a JSON-serializable object (dict, list, etc.) to a .json file
         under output_dir / username / {filename}.json
         """
-        user_dir = self.output_dir / username
-        user_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        filepath = user_dir / f"{filename}.json"
+        filepath = self.output_dir/ f"{username}-{filename}.json"
 
         with filepath.open("w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -55,10 +53,8 @@ class UserDataSaver:
         Save binary data (e.g. image bytes) to:
         output_dir / username / {filename}.{extension}
         """
-        user_dir = self.output_dir / username
-        user_dir.mkdir(parents=True, exist_ok=True)
-
-        filepath = user_dir / f"{filename}.{extension.lstrip('.')}"
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        filepath = self.output_dir / f"{filename}.{extension.lstrip('.')}"
 
         with filepath.open("wb") as f:          # "wb" = write binary
             f.write(data)
@@ -82,7 +78,7 @@ class UserDataSaver:
             self.save_user_binary(
                 username=username,
                 data=resp.content,
-                filename=attr_name,
+                filename=f'{username}_{attr_name}',
                 extension=extension
             )
         except requests.RequestException as e:

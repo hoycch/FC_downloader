@@ -1,0 +1,10 @@
+# Ignore all Visual Studio index files
+*.vsidx
+
+# Better yet, ignore the entire hidden Visual Studio folder
+.vs/
+
+/new_bosses/
+/bosses/
+/layman/
+/123456/
